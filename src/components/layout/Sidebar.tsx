@@ -62,6 +62,19 @@ export function Sidebar() {
 
   const menuItems = roleMenuItems[user.role];
 
+  const handleRoleSwitch = (newRole: UserRole) => {
+    const newRoleMenuItems = roleMenuItems[newRole];
+    const isCurrentRouteAccessible = newRoleMenuItems.some(item => item.path === location.pathname);
+    
+    // If current route is not accessible to the new role, navigate to dashboard
+    if (!isCurrentRouteAccessible) {
+      navigate('/dashboard');
+    }
+    
+    // Switch the role
+    switchRole(newRole);
+  };
+
   return (
     <aside className="w-64 bg-sidebar h-screen flex flex-col border-r border-sidebar-border">
       {/* Logo */}
@@ -110,7 +123,7 @@ export function Sidebar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
             {(Object.keys(roleLabels) as UserRole[]).map((role) => (
-              <DropdownMenuItem key={role} onClick={() => switchRole(role)}>
+              <DropdownMenuItem key={role} onClick={() => handleRoleSwitch(role)}>
                 {roleLabels[role]}
               </DropdownMenuItem>
             ))}
