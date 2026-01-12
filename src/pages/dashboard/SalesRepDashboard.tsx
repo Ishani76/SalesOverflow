@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { mockLeads } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { 
@@ -22,6 +23,7 @@ import { Lead } from '@/types/user';
 
 export default function SalesRepDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   
   const todaysLeads = mockLeads.slice(0, 3);
@@ -45,7 +47,7 @@ export default function SalesRepDashboard() {
             </div>
             <h2 className="text-lg font-semibold text-foreground">Today's Meetings</h2>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => navigate('/leads/past')}>
             View Past Leads
           </Button>
         </div>

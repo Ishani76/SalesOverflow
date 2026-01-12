@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import LeadReassignment from "./pages/LeadReassignment";
 import TeamAnalytics from "./pages/TeamAnalytics";
 import WeeklyReports from "./pages/WeeklyReports";
+import LeadsToday from "./pages/LeadsToday";
+import PastLeads from "./pages/PastLeads";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/leads/reassign" element={<LeadReassignment />} />
+            <Route path="/leads/today" element={<LeadsToday />} />
+            <Route path="/leads/past" element={<PastLeads />} />
             <Route path="/analytics" element={<TeamAnalytics />} />
             <Route path="/reports/weekly" element={<WeeklyReports />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
