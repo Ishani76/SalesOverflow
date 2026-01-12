@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { EditFeatureDialog } from '@/components/admin/EditFeatureDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Shield, Plus, Search, Edit, Trash2, CheckCircle2, XCircle } from 'lucide-react';
@@ -65,6 +66,8 @@ export default function AdminFeatures() {
   const [showAddFeature, setShowAddFeature] = useState(false);
   const [newFeatureName, setNewFeatureName] = useState('');
   const [newFeatureDescription, setNewFeatureDescription] = useState('');
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const filteredFeatures = features.filter(f => 
     f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -93,17 +96,34 @@ export default function AdminFeatures() {
   };
 
   const handleToggleFeature = (featureId: string) => {
-    setFeatures(features.map(f => 
-      f.id === featureId ? { ...f, enabled: !f.enabled } : f
-    ));
     const feature = features.find(f => f.id === featureId);
-    toast.success(`Feature "${feature?.name}" ${feature?.enabled ? 'disabled' : 'enabled'}`);
+    const newEnabled = !feature?.enabled;
+    setFeatures(features.map(f => 
+      f.id === featureId ? { ...f, enabled: newEnabled } : f
+    ));
+    toast.success(`Feature "${feature?.name}" ${newEnabled ? 'enabled' : 'disabled'}`);
   };
 
   const handleDeleteFeature = (featureId: string) => {
     const feature = features.find(f => f.id === featureId);
     setFeatures(features.filter(f => f.id !== featureId));
     toast.success(`Feature "${feature?.name}" deleted`);
+  };
+
+  const handleEditFeature = (featureId: string) => {
+    const feature = features.find(f => f.id === featureId);
+    if (!feature) return;
+    setSelectedFeature(feature);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveFeature = (updatedFeature: Feature) => {
+    setFeatures((prev) =>
+      prev.map((feature) =>
+        feature.id === updatedFeature.id ? updatedFeature : feature
+      )
+    );
+    toast.success(`Feature "${updatedFeature.name}" updated successfully`);
   };
 
   return (
@@ -214,7 +234,11 @@ export default function AdminFeatures() {
                     >
                       {feature.enabled ? 'Disable' : 'Enable'}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditFeature(feature.id)}
+                    >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit
                     </Button>
@@ -238,6 +262,13 @@ export default function AdminFeatures() {
             </div>
           )}
         </div>
+
+        <EditFeatureDialog
+          feature={selectedFeature}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSave={handleSaveFeature}
+        />
       </div>
     </DashboardLayout>
   );

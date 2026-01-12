@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { EditUserGroupDialog } from '@/components/admin/EditUserGroupDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Users, Plus, Search, Edit, Trash2 } from 'lucide-react';
@@ -51,6 +52,8 @@ export default function AdminUsers() {
   const [showAddGroup, setShowAddGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const filteredGroups = userGroups.filter(g => 
     g.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -82,6 +85,22 @@ export default function AdminUsers() {
     const group = userGroups.find(g => g.id === groupId);
     setUserGroups(userGroups.filter(g => g.id !== groupId));
     toast.success(`User group "${group?.name}" deleted`);
+  };
+
+  const handleEditGroup = (groupId: string) => {
+    const group = userGroups.find(g => g.id === groupId);
+    if (!group) return;
+    setSelectedGroup(group);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveGroup = (updatedGroup: UserGroup) => {
+    setUserGroups((prev) =>
+      prev.map((group) =>
+        group.id === updatedGroup.id ? updatedGroup : group
+      )
+    );
+    toast.success(`User group "${updatedGroup.name}" updated successfully`);
   };
 
   return (
@@ -169,7 +188,11 @@ export default function AdminUsers() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditGroup(group.id)}
+                    >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit
                     </Button>
@@ -207,6 +230,13 @@ export default function AdminUsers() {
             </div>
           )}
         </div>
+
+        <EditUserGroupDialog
+          group={selectedGroup}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSave={handleSaveGroup}
+        />
       </div>
     </DashboardLayout>
   );

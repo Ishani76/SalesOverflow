@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { EditUserDialog } from '@/components/dashboard/EditUserDialog';
 import { mockUsers } from '@/data/mockData';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,8 @@ const roleLabels: Record<UserRole, string> = {
 
 export default function UserManagement() {
   const [users, setUsers] = useState(mockUsers);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleRoleChange = (userId: string, newRole: UserRole) => {
     setUsers((prev) =>
@@ -35,7 +38,18 @@ export default function UserManagement() {
 
   const handleEditUser = (userId: string) => {
     const user = users.find((u) => u.id === userId);
-    toast.info(`Editing ${user?.name}...`);
+    if (!user) return;
+    setSelectedUser(user);
+    setIsDialogOpen(true);
+  };
+
+  const handleSaveUser = (updatedUser: User) => {
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === updatedUser.id ? updatedUser : user
+      )
+    );
+    toast.success(`${updatedUser.name}'s information updated successfully`);
   };
 
   return (
@@ -109,6 +123,13 @@ export default function UserManagement() {
             </table>
           </div>
         </div>
+
+        <EditUserDialog
+          user={selectedUser}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onSave={handleSaveUser}
+        />
       </div>
     </DashboardLayout>
   );
