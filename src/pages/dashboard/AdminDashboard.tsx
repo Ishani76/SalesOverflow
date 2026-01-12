@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { EditCompanyDialog } from '@/components/admin/EditCompanyDialog';
+import { CompanyFeaturesDialog } from '@/components/admin/CompanyFeaturesDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -20,6 +22,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 interface Company {
   id: string;
@@ -47,10 +50,65 @@ export default function AdminDashboard() {
   const [companies, setCompanies] = useState(mockCompanies);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddCompany, setShowAddCompany] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState('');
+  const [newManagerEmail, setNewManagerEmail] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isFeaturesDialogOpen, setIsFeaturesDialogOpen] = useState(false);
 
   const filteredCompanies = companies.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleEditCompany = (companyId: string) => {
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return;
+    setSelectedCompany(company);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleManageFeatures = (companyId: string) => {
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return;
+    setSelectedCompany(company);
+    setIsFeaturesDialogOpen(true);
+  };
+
+  const handleSaveCompany = (updatedCompany: Company) => {
+    setCompanies((prev) =>
+      prev.map((company) =>
+        company.id === updatedCompany.id ? updatedCompany : company
+      )
+    );
+    toast.success(`Company "${updatedCompany.name}" updated successfully`);
+  };
+
+  const handleDeleteCompany = (companyId: string) => {
+    const company = companies.find(c => c.id === companyId);
+    setCompanies(companies.filter(c => c.id !== companyId));
+    toast.success(`Company "${company?.name}" deleted`);
+  };
+
+  const handleAddCompany = () => {
+    if (!newCompanyName.trim()) {
+      toast.error('Company name is required');
+      return;
+    }
+    
+    const newCompany: Company = {
+      id: String(companies.length + 1),
+      name: newCompanyName.trim(),
+      managerEmails: newManagerEmail.trim() ? [newManagerEmail.trim()] : [],
+      features: [],
+      userCount: 0,
+    };
+    
+    setCompanies([...companies, newCompany]);
+    setNewCompanyName('');
+    setNewManagerEmail('');
+    setShowAddCompany(false);
+    toast.success(`Company "${newCompany.name}" added successfully`);
+  };
 
   return (
     <div className="space-y-8 animate-slide-in">
@@ -129,13 +187,22 @@ export default function AdminDashboard() {
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label>Company Name</Label>
-                    <Input placeholder="Enter company name" />
+                    <Input 
+                      placeholder="Enter company name" 
+                      value={newCompanyName}
+                      onChange={(e) => setNewCompanyName(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Manager Email (whitelist)</Label>
-                    <Input placeholder="manager@company.com" />
+                    <Input 
+                      placeholder="manager@company.com" 
+                      value={newManagerEmail}
+                      onChange={(e) => setNewManagerEmail(e.target.value)}
+                      type="email"
+                    />
                   </div>
-                  <Button className="w-full" onClick={() => setShowAddCompany(false)}>
+                  <Button className="w-full" onClick={handleAddCompany}>
                     Create Company
                   </Button>
                 </div>
@@ -163,15 +230,28 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleManageFeatures(company.id)}
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     Features
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditCompany(company.id)}
+                  >
                     <Edit className="w-4 h-4 mr-2" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => handleDeleteCompany(company.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -209,6 +289,21 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      <EditCompanyDialog
+        company={selectedCompany}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSave={handleSaveCompany}
+      />
+
+      <CompanyFeaturesDialog
+        company={selectedCompany}
+        open={isFeaturesDialogOpen}
+        onOpenChange={setIsFeaturesDialogOpen}
+        onSave={handleSaveCompany}
+        availableFeatures={allFeatures}
+      />
     </div>
   );
 }

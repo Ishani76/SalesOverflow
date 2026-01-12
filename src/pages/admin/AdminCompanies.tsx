@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { EditCompanyDialog } from '@/components/admin/EditCompanyDialog';
+import { CompanyFeaturesDialog } from '@/components/admin/CompanyFeaturesDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Building2, Plus, Search, Settings, Trash2, Edit } from 'lucide-react';
@@ -27,12 +29,22 @@ const mockCompanies: Company[] = [
   { id: '3', name: 'Global Sales Co', managerEmails: ['lead@globalsales.com', 'manager@globalsales.com'], features: ['analytics', 'reassignment', 'ai-chat'], userCount: 56 },
 ];
 
+const allFeatures = [
+  { id: 'analytics', name: 'Team Analytics', description: 'View team performance metrics' },
+  { id: 'reassignment', name: 'Lead Reassignment', description: 'Reassign leads between reps' },
+  { id: 'ai-chat', name: 'AI Call Chat', description: 'AI-powered transcript analysis' },
+  { id: 'custom-onboarding', name: 'Custom Onboarding', description: 'Customize onboarding emails' },
+];
+
 export default function AdminCompanies() {
   const [companies, setCompanies] = useState(mockCompanies);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddCompany, setShowAddCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState('');
   const [newManagerEmail, setNewManagerEmail] = useState('');
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isFeaturesDialogOpen, setIsFeaturesDialogOpen] = useState(false);
 
   const filteredCompanies = companies.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -63,6 +75,29 @@ export default function AdminCompanies() {
     const company = companies.find(c => c.id === companyId);
     setCompanies(companies.filter(c => c.id !== companyId));
     toast.success(`Company "${company?.name}" deleted`);
+  };
+
+  const handleEditCompany = (companyId: string) => {
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return;
+    setSelectedCompany(company);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleManageFeatures = (companyId: string) => {
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return;
+    setSelectedCompany(company);
+    setIsFeaturesDialogOpen(true);
+  };
+
+  const handleSaveCompany = (updatedCompany: Company) => {
+    setCompanies((prev) =>
+      prev.map((company) =>
+        company.id === updatedCompany.id ? updatedCompany : company
+      )
+    );
+    toast.success(`Company "${updatedCompany.name}" updated successfully`);
   };
 
   return (
@@ -154,11 +189,19 @@ export default function AdminCompanies() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleManageFeatures(company.id)}
+                    >
                       <Settings className="w-4 h-4 mr-2" />
                       Features
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditCompany(company.id)}
+                    >
                       <Edit className="w-4 h-4 mr-2" />
                       Edit
                     </Button>
@@ -182,6 +225,21 @@ export default function AdminCompanies() {
             </div>
           )}
         </div>
+
+        <EditCompanyDialog
+          company={selectedCompany}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSave={handleSaveCompany}
+        />
+
+        <CompanyFeaturesDialog
+          company={selectedCompany}
+          open={isFeaturesDialogOpen}
+          onOpenChange={setIsFeaturesDialogOpen}
+          onSave={handleSaveCompany}
+          availableFeatures={allFeatures}
+        />
       </div>
     </DashboardLayout>
   );
