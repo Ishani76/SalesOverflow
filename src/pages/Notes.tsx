@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { mockCallInsights } from '@/data/mockData';
 import { CallInsight } from '@/types/user';
-import { FileText, Search, CheckCircle2, XCircle, Clock, Building2, User, Plus } from 'lucide-react';
+import { FileText, Search, CheckCircle2, XCircle, Clock, Building2, User, Edit } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,22 +14,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 export default function Notes() {
   const [callNotes, setCallNotes] = useState(mockCallInsights);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterQualified, setFilterQualified] = useState<'all' | 'qualified' | 'unqualified'>('all');
-  const [showAddNote, setShowAddNote] = useState(false);
-  const [newNote, setNewNote] = useState({
-    company: '',
-    contact: '',
-    duration: '',
-    keyMatches: [] as string[],
-    qualified: false,
-  });
-  const [keyMatchInput, setKeyMatchInput] = useState('');
+  const [selectedNote, setSelectedNote] = useState<CallInsight | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [noteText, setNoteText] = useState('');
 
   const filteredNotes = callNotes.filter(note => {
     const matchesSearch = 
@@ -45,69 +39,39 @@ export default function Notes() {
     return matchesSearch && matchesFilter;
   });
 
-  const handleAddKeyMatch = () => {
-    if (keyMatchInput.trim() && !newNote.keyMatches.includes(keyMatchInput.trim())) {
-      setNewNote({
-        ...newNote,
-        keyMatches: [...newNote.keyMatches, keyMatchInput.trim()],
-      });
-      setKeyMatchInput('');
-    }
+  const handleEditNote = (note: CallInsight) => {
+    setSelectedNote(note);
+    setNoteText(note.notes || '');
+    setIsEditDialogOpen(true);
   };
 
-  const handleRemoveKeyMatch = (match: string) => {
-    setNewNote({
-      ...newNote,
-      keyMatches: newNote.keyMatches.filter((m) => m !== match),
-    });
-  };
+  const handleSaveNote = () => {
+    if (!selectedNote) return;
 
-  const handleAddNote = () => {
-    if (!newNote.company.trim() || !newNote.contact.trim() || !newNote.duration.trim()) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    const note: CallInsight = {
-      id: String(callNotes.length + 1),
-      company: newNote.company.trim(),
-      contact: newNote.contact.trim(),
-      duration: newNote.duration.trim(),
-      keyMatches: newNote.keyMatches,
-      qualified: newNote.qualified,
-    };
-
-    setCallNotes([...callNotes, note]);
-    setNewNote({
-      company: '',
-      contact: '',
-      duration: '',
-      keyMatches: [],
-      qualified: false,
-    });
-    setKeyMatchInput('');
-    setShowAddNote(false);
-    toast.success('Call note added successfully');
+    setCallNotes((prev) =>
+      prev.map((note) =>
+        note.id === selectedNote.id ? { ...note, notes: noteText.trim() } : note
+      )
+    );
+    
+    toast.success('Note saved successfully');
+    setIsEditDialogOpen(false);
+    setSelectedNote(null);
+    setNoteText('');
   };
 
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-slide-in">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-primary/10">
-              <FileText className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Call Notes</h1>
-              <p className="text-muted-foreground">Review call insights and key information from your calls</p>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-primary/10">
+            <FileText className="w-8 h-8 text-primary" />
           </div>
-          <Button onClick={() => setShowAddNote(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Note
-          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Call Notes</h1>
+            <p className="text-muted-foreground">Review call insights and key information from your calls</p>
+          </div>
         </div>
 
         {/* Filters */}
@@ -185,11 +149,27 @@ export default function Notes() {
                     </div>
                   </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditNote(note)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
               </div>
+
+              {/* Notes */}
+              {note.notes && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-sm font-medium text-foreground mb-2">Notes:</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{note.notes}</p>
+                </div>
+              )}
 
               {/* Key Matches */}
               {note.keyMatches.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-border">
+                <div className={`mt-4 pt-4 border-t border-border ${note.notes ? '' : 'mt-0 pt-0 border-t-0'}`}>
                   <p className="text-sm font-medium text-foreground mb-2">Key Matches:</p>
                   <div className="flex flex-wrap gap-2">
                     {note.keyMatches.map((match, index) => (
@@ -215,108 +195,40 @@ export default function Notes() {
         )}
       </div>
 
-      {/* Add Note Dialog */}
-      <Dialog open={showAddNote} onOpenChange={setShowAddNote}>
+      {/* Edit Note Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Call Note</DialogTitle>
+            <DialogTitle>Add Notes</DialogTitle>
             <DialogDescription>
-              Record details from a call you just made
+              Add notes for {selectedNote?.company}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="company">Company *</Label>
-              <Input
-                id="company"
-                value={newNote.company}
-                onChange={(e) => setNewNote({ ...newNote, company: e.target.value })}
-                placeholder="Enter company name"
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Enter your notes about this call..."
+                rows={6}
+                className="resize-none"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contact">Contact *</Label>
-              <Input
-                id="contact"
-                value={newNote.contact}
-                onChange={(e) => setNewNote({ ...newNote, contact: e.target.value })}
-                placeholder="Enter contact name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="duration">Call Duration *</Label>
-              <Input
-                id="duration"
-                value={newNote.duration}
-                onChange={(e) => setNewNote({ ...newNote, duration: e.target.value })}
-                placeholder="e.g., 12m 34s"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Key Matches</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={keyMatchInput}
-                  onChange={(e) => setKeyMatchInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddKeyMatch();
-                    }
-                  }}
-                  placeholder="Add key match and press Enter"
-                />
-                <Button type="button" variant="outline" onClick={handleAddKeyMatch}>
-                  Add
-                </Button>
-              </div>
-              {newNote.keyMatches.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {newNote.keyMatches.map((match, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 flex items-center gap-2"
-                    >
-                      {match}
-                      <button
-                        onClick={() => handleRemoveKeyMatch(match)}
-                        className="hover:text-destructive"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="qualified"
-                checked={newNote.qualified}
-                onCheckedChange={(checked) =>
-                  setNewNote({ ...newNote, qualified: checked === true })
-                }
-              />
-              <label
-                htmlFor="qualified"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-              >
-                Qualified Lead
-              </label>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddNote(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsEditDialogOpen(false);
+              setSelectedNote(null);
+              setNoteText('');
+            }}>
               Cancel
             </Button>
-            <Button onClick={handleAddNote}>
-              Add Note
+            <Button onClick={handleSaveNote}>
+              Save Notes
             </Button>
           </DialogFooter>
         </DialogContent>

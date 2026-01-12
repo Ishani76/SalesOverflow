@@ -1,5 +1,6 @@
 import { Lead, Agent } from '@/types/user';
 import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ interface LeadTableProps {
   agents: Agent[];
   onReassign?: (leadId: string, agentId: string) => void;
   onViewDetails?: (leadId: string) => void;
+  onEdit?: (leadId: string) => void;
 }
 
 const statusStyles: Record<Lead['status'], string> = {
@@ -23,7 +25,7 @@ const statusStyles: Record<Lead['status'], string> = {
   closed: 'status-qualified',
 };
 
-export function LeadTable({ leads, agents, onReassign, onViewDetails }: LeadTableProps) {
+export function LeadTable({ leads, agents, onReassign, onViewDetails, onEdit }: LeadTableProps) {
   return (
     <div className="stat-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -78,13 +80,24 @@ export function LeadTable({ leads, agents, onReassign, onViewDetails }: LeadTabl
                   </span>
                 </td>
                 <td className="py-4 px-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onViewDetails?.(lead.id)}
-                  >
-                    View Details
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onViewDetails?.(lead.id)}
+                    >
+                      View Details
+                    </Button>
+                    {onEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(lead.id)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

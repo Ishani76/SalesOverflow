@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LeadTable } from '@/components/dashboard/LeadTable';
 import { LeadDetailsDialog } from '@/components/dashboard/LeadDetailsDialog';
+import { EditLeadDialog } from '@/components/dashboard/EditLeadDialog';
 import { mockLeads, mockAgents } from '@/data/mockData';
 import { Lead } from '@/types/user';
 import { Users } from 'lucide-react';
@@ -11,6 +12,8 @@ export default function LeadReassignment() {
   const [leads, setLeads] = useState(mockLeads);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedEditLead, setSelectedEditLead] = useState<Lead | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleReassign = (leadId: string, agentId: string) => {
     const agent = mockAgents.find(a => a.id === agentId);
@@ -34,6 +37,22 @@ export default function LeadReassignment() {
     setIsDialogOpen(true);
   };
 
+  const handleEdit = (leadId: string) => {
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+    setSelectedEditLead(lead);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveLead = (updatedLead: Lead) => {
+    setLeads((prev) =>
+      prev.map((lead) =>
+        lead.id === updatedLead.id ? updatedLead : lead
+      )
+    );
+    toast.success(`Notes saved for ${updatedLead.company}`);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-slide-in">
@@ -54,12 +73,20 @@ export default function LeadReassignment() {
           agents={mockAgents}
           onReassign={handleReassign}
           onViewDetails={handleViewDetails}
+          onEdit={handleEdit}
         />
 
         <LeadDetailsDialog
           lead={selectedLead}
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+        />
+
+        <EditLeadDialog
+          lead={selectedEditLead}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onSave={handleSaveLead}
         />
       </div>
     </DashboardLayout>

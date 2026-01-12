@@ -42,4 +42,5 @@ export interface CallInsight {
   duration: string;
   keyMatches: string[];
   qualified: boolean;
+  notes?: string;
 }
