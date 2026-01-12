@@ -57,6 +57,49 @@ export const mockLeads: Lead[] = [
   },
 ];
 
+export const mockPastLeads: Lead[] = [
+  {
+    id: '5',
+    company: 'Harbor Analytics',
+    contact: 'Priya Nair',
+    assignedTo: 'James Mitchell',
+    assignedToId: '1',
+    status: 'closed',
+    value: 52000,
+    notes: 'Signed after two demos; upsell opportunity next quarter.',
+  },
+  {
+    id: '6',
+    company: 'Northwind Logistics',
+    contact: 'Carlos Rivera',
+    assignedTo: 'Sarah Hong',
+    assignedToId: '2',
+    status: 'proposal',
+    value: 31000,
+    notes: 'Waiting on legal review of MSA.',
+  },
+  {
+    id: '7',
+    company: 'BrightHealth',
+    contact: 'Melissa Clark',
+    assignedTo: 'Marcus King',
+    assignedToId: '3',
+    status: 'qualified',
+    value: 42000,
+    notes: 'Pilot completed successfully; decision expected next week.',
+  },
+  {
+    id: '8',
+    company: 'Acme Retail',
+    contact: 'Tom Nguyen',
+    assignedTo: 'Lisa Park',
+    assignedToId: '4',
+    status: 'contacted',
+    value: 18000,
+    notes: 'Re-engage after Q1 budget refresh.',
+  },
+];
+
 export const mockCallInsights: CallInsight[] = [
   {
     id: '1',
