@@ -17,6 +17,7 @@ import AdminCompanies from "./pages/admin/AdminCompanies";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminFeatures from "./pages/admin/AdminFeatures";
 import Notes from "./pages/Notes";
+import ClosedLeadsReport from "./pages/ClosedLeadsReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/notes" element={<Notes />} />
             <Route path="/analytics" element={<TeamAnalytics />} />
             <Route path="/reports/weekly" element={<WeeklyReports />} />
+            <Route path="/reports/closed-leads" element={<ClosedLeadsReport />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

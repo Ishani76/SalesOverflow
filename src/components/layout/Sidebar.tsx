@@ -39,6 +39,7 @@ const roleMenuItems: Record<UserRole, { label: string; icon: React.ElementType; 
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { label: "Today's Leads", icon: Calendar, path: '/leads/today' },
     { label: 'Past Leads', icon: FileText, path: '/leads/past' },
+    { label: 'Closed Leads Report', icon: BarChart3, path: '/reports/closed-leads' },
   ],
   sdr: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
