@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LeadTable } from '@/components/dashboard/LeadTable';
+import { LeadDetailsDialog } from '@/components/dashboard/LeadDetailsDialog';
 import { mockLeads, mockAgents } from '@/data/mockData';
+import { Lead } from '@/types/user';
 import { Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LeadsToday() {
   const [leads, setLeads] = useState(mockLeads);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleReassign = (leadId: string, agentId: string) => {
     const agent = mockAgents.find((a) => a.id === agentId);
@@ -26,7 +30,8 @@ export default function LeadsToday() {
   const handleViewDetails = (leadId: string) => {
     const lead = leads.find((l) => l.id === leadId);
     if (!lead) return;
-    toast.info(`Opening ${lead.company} details`);
+    setSelectedLead(lead);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -49,6 +54,12 @@ export default function LeadsToday() {
           agents={mockAgents}
           onReassign={handleReassign}
           onViewDetails={handleViewDetails}
+        />
+
+        <LeadDetailsDialog
+          lead={selectedLead}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
         />
       </div>
     </DashboardLayout>

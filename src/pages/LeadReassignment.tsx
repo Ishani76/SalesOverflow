@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LeadTable } from '@/components/dashboard/LeadTable';
+import { LeadDetailsDialog } from '@/components/dashboard/LeadDetailsDialog';
 import { mockLeads, mockAgents } from '@/data/mockData';
+import { Lead } from '@/types/user';
 import { Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LeadReassignment() {
   const [leads, setLeads] = useState(mockLeads);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleReassign = (leadId: string, agentId: string) => {
     const agent = mockAgents.find(a => a.id === agentId);
@@ -24,7 +28,10 @@ export default function LeadReassignment() {
   };
 
   const handleViewDetails = (leadId: string) => {
-    toast.info('Opening lead details...');
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead) return;
+    setSelectedLead(lead);
+    setIsDialogOpen(true);
   };
 
   return (
@@ -47,6 +54,12 @@ export default function LeadReassignment() {
           agents={mockAgents}
           onReassign={handleReassign}
           onViewDetails={handleViewDetails}
+        />
+
+        <LeadDetailsDialog
+          lead={selectedLead}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
         />
       </div>
     </DashboardLayout>
